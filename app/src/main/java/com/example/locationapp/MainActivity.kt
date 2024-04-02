@@ -3,6 +3,7 @@ package com.example.locationapp
 import android.Manifest
 import android.content.Context
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -20,31 +21,44 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.content.pm.ActivityInfoCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.locationapp.ui.theme.LocationAppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val viewModel:LocationViewModel = viewModel()
             LocationAppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
+                    MyApp(viewModel)
                 }
             }
         }
     }
 }
 
+@Composable
+fun MyApp(viewModel: LocationViewModel) {
+    val context = LocalContext.current
+    val locationUtils= LocationUtils(context)
+    LocationDisplay(locationUtils = locationUtils,viewModel, context = context)
+
+}
+
 
 @Composable
-fun LocationDisplay(locationUtils: LocationUtils,context: Context) {
+fun LocationDisplay(
+    locationUtils: LocationUtils,
+    viewModel: LocationViewModel,
+    context: Context
+) {
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
@@ -55,7 +69,7 @@ fun LocationDisplay(locationUtils: LocationUtils,context: Context) {
                 //we have the access
             }else{
                 //Ask for location
-                //this display why we need the location
+                //this is why we need the location
                 val rationaleRequired = ActivityCompat.shouldShowRequestPermissionRationale(
                     context as MainActivity,
                     Manifest.permission.ACCESS_FINE_LOCATION
@@ -64,6 +78,22 @@ fun LocationDisplay(locationUtils: LocationUtils,context: Context) {
                     context as MainActivity,
                     Manifest.permission.ACCESS_FINE_LOCATION
                 )
+
+                //this will display why we need it
+                if (rationaleRequired){
+                    Toast.makeText(
+                        context,
+                        "Location is required for this feature",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }else{
+                    //this when the user is denies the access then he need to go to the phone settings
+                    Toast.makeText(
+                        context,
+                        "Location is required for this feature, enable it in the phone settings",
+                        Toast.LENGTH_LONG).show()
+                }
+
             }
         }
     )
@@ -82,6 +112,12 @@ fun LocationDisplay(locationUtils: LocationUtils,context: Context) {
 
                 }else{
                     //Request location permission
+                    requestPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
 
                 }
             }
