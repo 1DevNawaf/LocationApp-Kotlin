@@ -10,7 +10,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
@@ -22,6 +25,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.locationapp.ui.theme.LocationAppTheme
@@ -60,6 +68,11 @@ fun LocationDisplay(
     context: Context
 ) {
     val location = viewModel.location.value
+
+    //in here we convert the Geocode into readable address
+    val address = location?.let {
+        locationUtils.reverseGeocodeLocation(location)
+    }
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
@@ -104,12 +117,22 @@ fun LocationDisplay(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp)
     ) {
+        Text(text = "Address", style = TextStyle(fontWeight = FontWeight.ExtraBold, fontSize = 25.sp))
+        Spacer(modifier = Modifier.height(8.dp))
         if (location!=null)
-            Text(text = "Address: ${location.latitude} ${location.longitude}")
+            Text(
+                text = "$address \n\nlat: ${location.latitude} lng: ${location.longitude}",
+                textAlign = TextAlign.Center,
+                style = TextStyle(fontWeight = FontWeight.Bold)
+            )
         else
-            Text(text = "Location is not available")
+            Text(text = "Location is not available", textAlign = TextAlign.Center)
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
